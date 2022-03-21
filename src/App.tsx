@@ -1,14 +1,14 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Routes, Route } from 'react-router-dom';
+import Login from 'routes/Login';
+import Register from 'routes/Register';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-      </header>
-    </div>
-  );
+const App: React.FC<{}> = () => {
+    return (
+        <Routes>
+            <Route path='/' element={<Login />} />
+            <Route path='/register' element={<Register />} />
+        </Routes>
+    );
 }
 
 export default App;
