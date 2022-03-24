@@ -1,11 +1,15 @@
 import React, { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom';
 import RegisterContainer from './Register.styles';
-import SimpleNavbar from 'components/SimpleNavbar';
-import InputWithMovingPlaceholder from 'components/InputWithMovingPlaceholder';
+import SimpleNavbar from 'components/Navbars/SimpleNavbar';
+import InputWithMovingPlaceholder from 'components/Inputs/InputWithMovingPlaceholder';
 import DefaultButton from 'components/Buttons/DefaultButton';
+import UsersAPI from 'api/UsersAPI';
+import SimpleWarning from 'components/Warnings/SimpleWarning';
+import { RegisterResponse } from 'api/UsersAPI/register';
 
 interface NewUser {
-    login: string;
+    email: string;
     password: string;
     rePassword: string;
 }
@@ -19,8 +23,8 @@ type handleErrorsType = (user: NewUser) => Array<NewUserErrors>;
 
 const handleErrors: handleErrorsType = user => {
     const errors: NewUserErrors[] = [];
-    const { login, password, rePassword } = user;
-    if (login.length < 5) errors.push({ field: 'login', value: 'Login is to short - at least 5 characters' });
+    const { email, password, rePassword } = user;
+    if (email.length < 5) errors.push({ field: 'email', value: 'email is to short - at least 5 characters' });
     if (password.length < 8) errors.push({ field: 'password', value: 'Password is to short - at least 8 characters' });
     if (!password.match(/.*\d/)) errors.push({ field: 'password', value: 'Password requires at least one digit' });
     if (!password.match(/.*[a-z]/)) errors.push({ field: 'password', value: 'Password requires at least one lower case' });
@@ -31,10 +35,13 @@ const handleErrors: handleErrorsType = user => {
 }
 
 const Register: React.FC<{}> = () => {
-    const [newUser, setNewUser] = useState<NewUser>({ login: '', password: '', rePassword: '' });
+    const navigate = useNavigate();
+    const [newUser, setNewUser] = useState<NewUser>({ email: '', password: '', rePassword: '' });
+    const [msg, setMsg] = useState<string>('');
+    const [isFetching, setIsFetching] = useState<boolean>(false);
 
     const errors = useMemo(() => {
-        if ([newUser.login, newUser.password].every(v => v.length === 0)) return [];
+        if ([newUser.email, newUser.password].every(v => v.length === 0)) return [];
         return handleErrors(newUser);
     }, [newUser])
 
@@ -47,6 +54,27 @@ const Register: React.FC<{}> = () => {
         }));
     }
 
+    const handleRegisterClick = async (): Promise<void> => {
+        setIsFetching(true);
+
+        try {
+            const [isValid, data]: RegisterResponse = await UsersAPI.register(newUser.email, newUser.password);
+            if (isValid) {
+                localStorage.setItem('ecp-jwt', data);
+                setIsFetching(false);
+                setMsg('');
+                navigate('/dashboard')
+                return;
+            }
+
+            setMsg(data);
+            setIsFetching(false);
+        } catch (e: any) {
+            setIsFetching(false);
+            throw new Error('login error');
+        }
+    }
+
     return (
         <RegisterContainer>
             <SimpleNavbar isLogin={false} />
@@ -57,12 +85,12 @@ const Register: React.FC<{}> = () => {
 
                 <InputWithMovingPlaceholder
                     type='text'
-                    nameValue='login'
-                    placeholder={'Username'}
-                    value={newUser.login}
+                    nameValue='email'
+                    placeholder={'E-Mail'}
+                    value={newUser.email}
                     handleInputChange={e => handleInputChange(e)}
                     required={true}
-                    errors={errors.filter(({ field }) => field === 'login').map(({ value }) => value)}
+                    errors={errors.filter(({ field }) => field === 'email').map(({ value }) => value)}
                     containerClassName='register-input-container'
                 />
 
@@ -90,9 +118,15 @@ const Register: React.FC<{}> = () => {
 
                 <DefaultButton
                     text={'Register'}
-                    isDisabled={errors.length > 0 || (newUser.login.length === 0 && newUser.password.length === 0)}
-                    onClick={() => console.log('TO DO')}
+                    isDisabled={errors.length > 0 || (newUser.email.length === 0 && newUser.password.length === 0)}
+                    onClick={() => handleRegisterClick()}
+                    isFetching={isFetching}
+                    spinnerHeight={15}
+                    spinnerWidth={15}
                 />
+
+                <SimpleWarning msg={msg} />
+
             </div>
         </RegisterContainer>
     )

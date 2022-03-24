@@ -1,3 +1,4 @@
+import DefaultSpinner from 'components/Spinners/DefaultSpinner';
 import React from 'react'
 import DefaultButtonContainer from './DefaultButton.styles';
 
@@ -6,13 +7,19 @@ interface IProps {
     isDisabled?: boolean;
     onClick: () => void;
     className?: string;
+    isFetching?: boolean;
+    spinnerWidth?: number;
+    spinnerHeight?: number;
 }
 
 const DefaultButton: React.FC<IProps> = ({
     text,
     isDisabled = false,
     onClick,
-    className = ''
+    className = '',
+    isFetching = false,
+    spinnerWidth,
+    spinnerHeight
 }) => {
     return (
         <DefaultButtonContainer
@@ -20,7 +27,10 @@ const DefaultButton: React.FC<IProps> = ({
             disabled={isDisabled}
             onClick={onClick}
         >
-            {text}
+            {isFetching
+                ? <DefaultSpinner height={spinnerHeight} width={spinnerWidth} />
+                : text
+            }
         </DefaultButtonContainer>
     )
 }

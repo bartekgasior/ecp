@@ -1,5 +1,5 @@
 import React from 'react'
-import NavbarContainer from './Navbar.styles';
+import NavbarContainer from './DefaultNavbar.styles';
 
 interface IProps {
     activeModule: string

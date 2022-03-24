@@ -5,6 +5,7 @@ const LoginContainer = styled.div`
     justify-content: center;
 
     #login-form {
+        min-width: 350px;
         display: flex;
         flex-direction: column;
         margin: 3em 0;
